@@ -1,5 +1,17 @@
 package assignment5;
 
+import javafx.scene.Scene;
+import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
+import javafx.application.Application;
+import javafx.event.*;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.stage.Stage;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -278,7 +290,10 @@ public abstract class Critter {
      * Display the world with the Critters in the correct position.
      * If two or more Critters are in the same place, only one shows (could be any one).
      */
-    public static void displayWorld() {
+    public static void displayWorld(GridPane grid) {
+        paintGridLines(grid);
+
+        /*
         // Print top border
         System.out.print("+");
         for(int i = 0; i < Params.world_width; i++) {
@@ -290,6 +305,7 @@ public abstract class Critter {
 			if so: print their symbol
 			else: print an empty space
 		*/
+        /*
         for(int y = 0; y < Params.world_height; y++) {
             System.out.print('|');
             for(int x = 0; x < Params.world_width; x++) {
@@ -308,7 +324,20 @@ public abstract class Critter {
             System.out.print("-");
         }
         System.out.println("+");
+        */
     }
+
+    private static void paintGridLines(GridPane grid) {
+        for (int r = 0; r < Params.world_width; r++)
+            for (int c = 0; c < Params.world_height; c++) {
+                Shape s = new Rectangle(500/Params.world_width, 500/Params.world_width);
+                s.setFill(null);
+                s.setStroke(Color.BLACK);
+                grid.add(s, c, r);
+            }
+
+    }
+
 
     /**
      * create and initialize a Critter subclass.
