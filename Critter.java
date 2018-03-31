@@ -2,15 +2,14 @@ package assignment5;
 
 import javafx.scene.Scene;
 import javafx.scene.layout.GridPane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
+import javafx.scene.paint.*;
 import javafx.application.Application;
 import javafx.event.*;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import javafx.scene.shape.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +48,8 @@ public abstract class Critter {
 	private static int timestep = 0;
 	private static List<Critter> babies = new java.util.ArrayList<Critter>();
 	private static List<Critter> collection = new java.util.ArrayList<Critter>();
-	private static String[][] board = new String[Params.world_width][Params.world_height];
+//	private static String[][] board = new String[Params.world_width][Params.world_height];
+    private static Critter[][] board = new Critter[Params.world_width][Params.world_height];
 
 	// Gets the package name.  This assumes that Critter and its subclasses are all in the same package.
 	static {
@@ -83,6 +83,7 @@ public abstract class Critter {
         int x = coords.get(0);
         int y = coords.get(1);
 
+        // probably could get rid of the for loop just look at the board
         for (Critter crit : collection) {
             if (crit.x_coord == x && crit.y_coord == y)
                 return crit.toString();
@@ -156,6 +157,7 @@ public abstract class Critter {
 	private int x_coord;
 	private int y_coord;
 	private boolean hasMoved;
+	private static int size = 500/Params.world_width;
 
     /**
      * Walks the Critter one place in the given direction. Energy cost is deducted.
@@ -173,11 +175,13 @@ public abstract class Critter {
             board[x_coord][y_coord] = null; // Clear the board of where it was
 
             move(direction, 1);
-            board[x_coord][y_coord] = this.toString(); // Add to new place on board
+//            board[x_coord][y_coord] = this.toString(); // Add to new place on board
+            board[x_coord][y_coord] = this; // Add to new place on board
 
             for (Critter critter : collection) { // But replace it if there is something else there too
                 if (critter.x_coord == oldX && critter.y_coord == oldY) {
-                    board[oldX][oldY] = critter.toString();
+//                    board[oldX][oldY] = critter.toString();
+                    board[oldX][oldY] = critter;
                 }
             }
         }
@@ -199,11 +203,11 @@ public abstract class Critter {
             board[x_coord][y_coord] = null; // Clear the board of where it was
 
             move(direction, 2);
-            board[x_coord][y_coord] = this.toString(); // Add to new place on board
+            board[x_coord][y_coord] = this; // Add to new place on board
 
             for (Critter critter : collection) { // But replace it if there is something else there too
                 if (critter.x_coord == oldX && critter.y_coord == oldY) {
-                    board[oldX][oldY] = critter.toString();
+                    board[oldX][oldY] = critter;
                 }
             }
         }
@@ -328,14 +332,88 @@ public abstract class Critter {
     }
 
     private static void paintGridLines(GridPane grid) {
-        for (int r = 0; r < Params.world_width; r++)
+         for (int r = 0; r < Params.world_width; r++)
             for (int c = 0; c < Params.world_height; c++) {
-                Shape s = new Rectangle(500/Params.world_width, 500/Params.world_width);
+                Shape s = new Rectangle(size, size);
                 s.setFill(null);
                 s.setStroke(Color.BLACK);
                 grid.add(s, c, r);
             }
 
+    }
+    /*
+     * Paints the icon shapes on a grid.
+     */
+    public static void paint(GridPane grid) {
+        grid.getChildren().clear();
+        paintGridLines(grid);
+
+        for (int r = 0; r < Params.world_width; r++)
+            for (int c = 0; c < Params.world_height; c++) {
+                if (board[r][c] != null) { // There is a critter there
+                    Critter crit = board[r][c];
+                    Shape s = crit.getIcon();
+                    grid.add(s, r, c); // or r , c
+                }
+            }
+
+    }
+
+    /*
+     * Returns a square or a circle depending on the shapeIndex parameter
+     *
+     */
+    private Shape getIcon() {
+        Shape s = null;
+        Color color = viewColor();
+        Color outline = viewOutlineColor();
+        Color fill = viewFillColor();
+        CritterShape cs = viewShape();
+        Polygon polygon;
+
+        switch(cs) {
+            case SQUARE: s = new Rectangle(size, size);
+                s.setFill(fill);
+                break;
+            case CIRCLE: s = new Circle(size/2);
+                s.setFill(fill);
+                break;
+            case STAR: polygon = new Polygon();
+                polygon.getPoints().addAll(new Double[]{
+                        (double) (size - 1) / 2, 2.5, // WAS 10.0, 0.0 the 2.5 needs to be fixed
+                        (double) (size - 1) / 3, (double) (size - 1) / 3,
+                        0.0, (double)  (size - 1) / 3,
+                        (double) (size - 1) / 3, (double) (size - 1) / 1.66,
+                        (double) (size - 1) / 6, (double) size - 1,
+                        (double) (size - 1) / 2, (double) (size - 1) / 1.5,
+                        (double) (size - 1) / 1.1667, (double) size - 1, // 7
+                        (double) (size - 1) / 1.5, (double) (size - 1) / 1.66,
+                        (double) size - 3.5, (double) (size - 1) / 3, //9 // this -3.5 needs to be fixed
+                        (double) (size - 1) / 1.5, (double) (size - 1) / 3}); // 10
+                s = polygon;
+                s.setFill(fill);
+                break;
+            case DIAMOND: polygon = new Polygon();
+                polygon.getPoints().addAll(new Double[]{
+                        (double) (size - 1) / 2, 1.0, // was 10.0, 0.0 the 1.0
+                        0.0, (double) (size - 1) / 2,
+                        (double) (size - 1) / 2, (double) size - 1,
+                        (double) size - 2, (double) (size - 1) / 2}); // was 15, 10 // the -2
+                s = polygon;
+                s.setFill(fill);
+                break;
+            case TRIANGLE: polygon = new Polygon();
+                polygon.getPoints().addAll(new Double[]{
+                        (double) (size/2 - 1), 0.0, // WAS 10.0, 0.0
+                        0.0, (double) size - 2, // was 0.0, 20.0 // the -2 everywhere
+                        (double) size - 2, (double) size - 2});
+                s = polygon;
+                s.setFill(fill);
+                break;
+        }
+        // set the outline
+        s.setStroke(outline);
+        return s;
     }
 
 
@@ -359,7 +437,8 @@ public abstract class Critter {
             newCritter.y_coord = getRandomInt(Params.world_height);
             newCritter.hasMoved = false;
             collection.add(newCritter);
-            board[newCritter.x_coord][newCritter.y_coord] = newCritter.toString();
+//            board[newCritter.x_coord][newCritter.y_coord] = newCritter.toString();
+            board[newCritter.x_coord][newCritter.y_coord] = newCritter;
         }
         catch(Exception e) {
             throw new InvalidCritterException(critter_class_name);
@@ -434,10 +513,12 @@ public abstract class Critter {
             int oldX = super.x_coord, oldY = super.y_coord;
             board[oldX][oldY] = null;
             super.x_coord = new_x_coord;
-            board[super.x_coord][super.y_coord] = this.toString();
+//            board[super.x_coord][super.y_coord] = this.toString();
+            board[super.x_coord][super.y_coord] = this;
             for (Critter critter : collection) {
                 if (critter.x_coord == oldX && critter.y_coord == oldY) {
-                    board[oldX][oldY] = critter.toString();
+//                    board[oldX][oldY] = critter.toString();
+                    board[oldX][oldY] = critter;
                 }
             }
         }
@@ -446,10 +527,10 @@ public abstract class Critter {
             int oldX = super.x_coord, oldY = super.y_coord;
             board[oldX][oldY] = null;
             super.y_coord = new_y_coord;
-            board[super.x_coord][super.y_coord] = this.toString();
+            board[super.x_coord][super.y_coord] = this;
             for (Critter critter : collection) {
                 if (critter.x_coord == oldX && critter.y_coord == oldY) {
-                    board[oldX][oldY] = critter.toString();
+                    board[oldX][oldY] = critter;
                 }
             }
         }
@@ -531,7 +612,8 @@ public abstract class Critter {
                 board[critter.x_coord][critter.y_coord] = null;
                 for (Critter crit : collection) {
                     if (!crit.equals(critter) && crit.x_coord == critter.x_coord && crit.y_coord == critter.y_coord)
-                        board[crit.x_coord][crit.y_coord] = crit.toString();
+//                        board[crit.x_coord][crit.y_coord] = crit.toString();
+                        board[crit.x_coord][crit.y_coord] = crit;
                 }
             }
         }
@@ -557,7 +639,8 @@ public abstract class Critter {
             alg.setX_coord(x);
             alg.setY_coord(y);
             collection.add(alg);
-            board[x][y] = alg.toString();
+//            board[x][y] = alg.toString();
+            board[x][y] = alg;
         }
     }
 
@@ -604,7 +687,8 @@ public abstract class Critter {
         board[critter.x_coord][critter.y_coord] = null;
         for (Critter crit : collection) {
             if (crit.x_coord == critter.x_coord && crit.y_coord == critter.y_coord)
-                board[critter.x_coord][critter.y_coord] = crit.toString();
+//                board[critter.x_coord][critter.y_coord] = crit.toString();
+                board[critter.x_coord][critter.y_coord] = crit;
         }
 
     }
@@ -695,11 +779,13 @@ public abstract class Critter {
                 // Check who wins
                 if (firstRoll >= secondRoll) {
                     first.energy += second.energy / 2;
-                    board[second.x_coord][second.y_coord] = first.toString();
+//                    board[second.x_coord][second.y_coord] = first.toString();
+                    board[second.x_coord][second.y_coord] = first;
                     collection.remove(second);
                 } else {
                     second.energy += first.energy / 2;
-                    board[first.x_coord][first.y_coord] = second.toString();
+//                    board[first.x_coord][first.y_coord] = second.toString();
+                    board[first.x_coord][first.y_coord] = second;
                     collection.remove(first);
                 }
 
