@@ -9,6 +9,9 @@ import javafx.event.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
+import java.lang.reflect.Method;
+import java.util.List;
+
 public class Main extends Application{
 
 	public static void main(String[] args) {
@@ -76,8 +79,8 @@ public class Main extends Application{
 //            secondGrid.getChildren().add(hbox);
             secondGrid.add(stepsHbox,1, 2);
 
-            Button btn4 = new Button("Stats");
-            secondGrid.add(btn4,0, 3);
+            Button statsBtn = new Button("Stats");
+            secondGrid.add(statsBtn,0, 3);
 
             TextField classNameStatsText = new TextField();
             HBox thirdHbox = new HBox(classNameStatsText);
@@ -86,8 +89,8 @@ public class Main extends Application{
             secondGrid.add(thirdHbox,1, 3);
 
 
-            Button btn5 = new Button("Seed");
-            secondGrid.add(btn5,0, 4);
+            Button seedBtn = new Button("Seed");
+            secondGrid.add(seedBtn,0, 4);
 
             TextField seedText = new TextField();
             HBox fourthHbox = new HBox(seedText);
@@ -95,10 +98,10 @@ public class Main extends Application{
 //            secondGrid.getChildren().add(hbox);
             secondGrid.add(fourthHbox,1, 4);
 
-			Button btn6 = new Button("Quit");
+			Button quitBtn = new Button("Quit");
 //            secondGrid.getChildren().add(btn3);
 //			btn3.setTranslateX(-80.0);
-            secondGrid.add(btn6,0, 5);
+            secondGrid.add(quitBtn,0, 5);
 
 			/*
 	        btn.setOnAction(new EventHandler<ActionEvent>() {
@@ -148,6 +151,38 @@ public class Main extends Application{
                 stepsToTakeText.clear();
             });
 
+            statsBtn.setOnAction(e-> {
+                String className = classNameStatsText.getText();
+                try {
+                    List<Critter> temp = Critter.getInstances(className);
+                    Class c = Class.forName(className);
+                    Object o = c.newInstance();
+                    String methodName = "runStats";
+                    Method runStats = o.getClass().getMethod(methodName, List.class);
+                    runStats.invoke(o, temp);
+                } catch (Exception ex) {
+                    System.out.println(ex.toString());
+                }
+                classNameStatsText.clear();
+
+            });
+
+            seedBtn.setOnAction(e-> {
+                Long num;
+                String seedNum = seedText.getText();
+                try {
+                    num = Long.parseLong(seedNum);
+                    Critter.setSeed(num);
+                } catch (Exception ex) {
+                    System.out.println(ex.toString());
+                }
+                seedText.clear();
+
+            });
+
+            quitBtn.setOnAction(e-> {
+                System.exit(0);
+            });
 
 
 		} catch (Exception e) {
