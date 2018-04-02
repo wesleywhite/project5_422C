@@ -485,7 +485,7 @@ public abstract class Critter {
         }
         String prefix = "";
         for (String str : critter_count.keySet()) {
-            s = s + prefix + str + ":" + critter_count.get(s);
+            s = s + prefix + str + ":" + critter_count.get(str);
             prefix = ", ";
         }
         return s;

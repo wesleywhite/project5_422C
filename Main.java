@@ -20,55 +20,48 @@ public class Main extends Application{
 	@Override
 	public void start(Stage primaryStage) { // primaryStage is created by Java VM
 		try {
+		    // View Window
 			GridPane grid = new GridPane();
 			Scene scene = new Scene(grid, 600, 600); // creates a scene object with the GridPane
 			primaryStage.setScene(scene); // puts the scene onto the stage
 			primaryStage.setTitle("View");
 			primaryStage.show(); // display the stage with the scene
 
-			Critter.displayWorld(grid); // paints the icons on the grid
+			Critter.displayWorld(grid); // paints the grid lines
 
-//            for (int i = 0; i < 10; i++)
-//			    Critter.makeCritter("Craig");
-
+            // Controller Window
             Stage secondStage = new Stage();
             secondStage.setTitle("Controller");
             secondStage.show();
 
-            //StackPane pane = new StackPane();
+            Stage thirdStage = new Stage();
+            FlowPane flowPane = new FlowPane();
+            Scene thirdScene = new Scene(flowPane, 500, 50);
+            thirdStage.setScene(thirdScene);
+            thirdStage.show();
+
             GridPane secondGrid = new GridPane();
             Scene secondScene = new Scene(secondGrid, 250, 250);
-
             secondStage.setScene(secondScene);
-
             secondGrid.setHgap(10);
             secondGrid.setVgap(10);
             grid.setPadding(new Insets(0, 10, 0, 10));
 
-
             Button showBtn = new Button("Show");
-//          secondGrid.getChildren().add(btn1);
-//			btn1.setTranslateX(-80.0);
-//			btn1.setTranslateY(-80.0);
             secondGrid.add(showBtn, 0, 0);
 
 			Button makeBtn = new Button("Make");
-//          secondGrid.getChildren().add(btn2);
-//			btn2.setTranslateX(-80.0);
-//			btn2.setTranslateY(-40.0);
             secondGrid.add(makeBtn, 0, 1);
 
-            TextField classNameText = new TextField();
-            HBox hbox = new HBox(classNameText);
-            hbox.setMaxWidth(75);
-//            secondGrid.getChildren().add(hbox);
-            secondGrid.add(hbox,1, 1);
+            TextField makeClassNameText = new TextField();
+            HBox makeHbox = new HBox(makeClassNameText);
+            makeHbox.setMaxWidth(75);
+            secondGrid.add(makeHbox,1, 1);
 
-            TextField numberToMake = new TextField();
-            HBox secondHbox = new HBox(numberToMake);
-            secondHbox.setMaxWidth(50);
-//            secondGrid.getChildren().add(hbox);
-            secondGrid.add(secondHbox,2, 1);
+            TextField numberToMakeText = new TextField();
+            HBox secondMakeHbox = new HBox(numberToMakeText);
+            secondMakeHbox.setMaxWidth(50);
+            secondGrid.add(secondMakeHbox,2, 1);
 
             Button stepBtn = new Button("Step");
             secondGrid.add(stepBtn,0, 2);
@@ -76,50 +69,43 @@ public class Main extends Application{
             TextField stepsToTakeText = new TextField();
             HBox stepsHbox = new HBox(stepsToTakeText);
             stepsHbox.setMaxWidth(50);
-//            secondGrid.getChildren().add(hbox);
             secondGrid.add(stepsHbox,1, 2);
 
             Button statsBtn = new Button("Stats");
             secondGrid.add(statsBtn,0, 3);
 
-            TextField classNameStatsText = new TextField();
-            HBox thirdHbox = new HBox(classNameStatsText);
-            thirdHbox.setMaxWidth(75);
-//            secondGrid.getChildren().add(hbox);
-            secondGrid.add(thirdHbox,1, 3);
-
+            TextField statsClassNameText = new TextField();
+            HBox statsHbox = new HBox(statsClassNameText);
+            statsHbox.setMaxWidth(75);
+            secondGrid.add(statsHbox,1, 3);
 
             Button seedBtn = new Button("Seed");
             secondGrid.add(seedBtn,0, 4);
 
             TextField seedText = new TextField();
-            HBox fourthHbox = new HBox(seedText);
-            fourthHbox.setMaxWidth(50);
-//            secondGrid.getChildren().add(hbox);
-            secondGrid.add(fourthHbox,1, 4);
+            HBox seedHbox = new HBox(seedText);
+            seedHbox.setMaxWidth(50);
+            secondGrid.add(seedHbox,1, 4);
 
 			Button quitBtn = new Button("Quit");
-//            secondGrid.getChildren().add(btn3);
-//			btn3.setTranslateX(-80.0);
             secondGrid.add(quitBtn,0, 5);
 
-			/*
-	        btn.setOnAction(new EventHandler<ActionEvent>() {
-	            @Override
-	            public void handle(ActionEvent e) {
-	            	Painter.paint(grid);
-	            }
-	        });
-			*/
+            // Text for the stats
+            Label lbl = new Label();
+            lbl.setText("Hey");
+            flowPane.getChildren().add(lbl);
 
+
+            // Action for show
             showBtn.setOnAction(e-> {
                 Critter.paint(grid);
             });
 
+            // Action for make
             makeBtn.setOnAction(e-> {
                 int num = 1;
-                String className = classNameText.getText();
-                String number = numberToMake.getText();
+                String className = makeClassNameText.getText();
+                String number = numberToMakeText.getText();
                 try {
                     if (number.length() != 0)
                         num = Integer.parseInt(number); // does this throw an exception?
@@ -129,12 +115,14 @@ public class Main extends Application{
                     }
                 } catch (Exception ex) {
                     System.out.println(ex.toString());
+                    lbl.setText("Error Processing");
                 }
-                classNameText.clear();
-                numberToMake.clear();
+                makeClassNameText.clear();
+                numberToMakeText.clear();
 
             });
 
+            // Action for step
             stepBtn.setOnAction(e-> {
                 int num = 1;
                 String number = stepsToTakeText.getText();
@@ -151,22 +139,27 @@ public class Main extends Application{
                 stepsToTakeText.clear();
             });
 
+            // Action for stats
             statsBtn.setOnAction(e-> {
-                String className = classNameStatsText.getText();
+                String className = statsClassNameText.getText();
                 try {
                     List<Critter> temp = Critter.getInstances(className);
-                    Class c = Class.forName(className);
+                    Class c = Class.forName("assignment5." + className);
                     Object o = c.newInstance();
                     String methodName = "runStats";
                     Method runStats = o.getClass().getMethod(methodName, List.class);
-                    runStats.invoke(o, temp);
+                    String stats = (String) runStats.invoke(o, temp);
+                    System.out.println(stats);
+                    lbl.setText(stats);
+
                 } catch (Exception ex) {
                     System.out.println(ex.toString());
                 }
-                classNameStatsText.clear();
+                statsClassNameText.clear();
 
             });
 
+            // Action for seed
             seedBtn.setOnAction(e-> {
                 Long num;
                 String seedNum = seedText.getText();
@@ -180,6 +173,7 @@ public class Main extends Application{
 
             });
 
+            // Action for quit
             quitBtn.setOnAction(e-> {
                 System.exit(0);
             });
