@@ -1,5 +1,8 @@
 package assignment5;
 
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.layout.GridPane;
@@ -8,6 +11,7 @@ import javafx.application.Application;
 import javafx.event.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.util.Duration;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -35,8 +39,9 @@ public class Main extends Application{
             secondStage.show();
 
             Stage thirdStage = new Stage();
+            thirdStage.setTitle("Output");
             FlowPane flowPane = new FlowPane();
-            Scene thirdScene = new Scene(flowPane, 500, 50);
+            Scene thirdScene = new Scene(flowPane, 500, 20);
             thirdStage.setScene(thirdScene);
             thirdStage.show();
 
@@ -90,15 +95,31 @@ public class Main extends Application{
 			Button quitBtn = new Button("Quit");
             secondGrid.add(quitBtn,0, 5);
 
-            // Text for the stats
+            Button simBtn = new Button("Sim");
+            secondGrid.add(simBtn,0,6);
+
+            TextField simSpeedText = new TextField();
+            HBox simSpeedHbox = new HBox(simSpeedText);
+            simSpeedHbox.setMaxWidth(50);
+            secondGrid.add(simSpeedHbox,1, 6);
+
+
+            Timeline tl = new Timeline();
+            tl.setCycleCount(Animation.INDEFINITE);
+
+
+            Button simStopBtn = new Button("Stop");
+            secondGrid.add(simStopBtn, 2, 6);
+
+
+            // Text for the stats and error messages
             Label lbl = new Label();
-            lbl.setText("Hey");
             flowPane.getChildren().add(lbl);
 
 
             // Action for show
             showBtn.setOnAction(e-> {
-                Critter.paint(grid);
+                Critter.displayWorld(grid);
             });
 
             // Action for make
@@ -113,13 +134,12 @@ public class Main extends Application{
                         Critter.makeCritter(className);
                         num--;
                     }
+                    lbl.setText("");
                 } catch (Exception ex) {
-                    System.out.println(ex.toString());
-                    lbl.setText("Error Processing");
+                    lbl.setText("Error Processing - Make");
                 }
                 makeClassNameText.clear();
                 numberToMakeText.clear();
-
             });
 
             // Action for step
@@ -133,8 +153,9 @@ public class Main extends Application{
                         Critter.worldTimeStep();
                         num--;
                     }
+                    lbl.setText("");
                 } catch (Exception ex) {
-                    System.out.println(ex.toString());
+                    lbl.setText("Error Processing - Step");
                 }
                 stepsToTakeText.clear();
             });
@@ -151,12 +172,10 @@ public class Main extends Application{
                     String stats = (String) runStats.invoke(o, temp);
                     System.out.println(stats);
                     lbl.setText(stats);
-
                 } catch (Exception ex) {
-                    System.out.println(ex.toString());
+                    lbl.setText("Error Processing - Stats");
                 }
                 statsClassNameText.clear();
-
             });
 
             // Action for seed
@@ -166,16 +185,45 @@ public class Main extends Application{
                 try {
                     num = Long.parseLong(seedNum);
                     Critter.setSeed(num);
+                    lbl.setText("");
                 } catch (Exception ex) {
-                    System.out.println(ex.toString());
+                    lbl.setText("Error Processing - Seed");
                 }
                 seedText.clear();
-
             });
 
             // Action for quit
             quitBtn.setOnAction(e-> {
                 System.exit(0);
+            });
+
+            // Action for simulate
+            simBtn.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    try {
+                        Double speed = Double.parseDouble(simSpeedText.getText());
+                        speed = 1 / speed;
+                        KeyFrame simulateWorld = new KeyFrame(Duration.seconds(speed), new EventHandler<ActionEvent>() {
+                            @Override
+                            public void handle(ActionEvent event) {
+                                Critter.worldTimeStep();
+                                Critter.displayWorld(grid);
+                            }
+                        });
+                        tl.getKeyFrames().add(simulateWorld);
+                        tl.play();
+                        lbl.setText("");
+                    } catch (Exception ex) {
+                        lbl.setText("Error Processing - Simulate");
+                    }
+                    simSpeedText.clear();
+                }
+            });
+
+            simStopBtn.setOnAction(e -> {
+                tl.stop();
+                tl.getKeyFrames().clear();
             });
 
 

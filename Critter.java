@@ -295,40 +295,7 @@ public abstract class Critter {
      * If two or more Critters are in the same place, only one shows (could be any one).
      */
     public static void displayWorld(GridPane grid) {
-        paintGridLines(grid);
-
-        /*
-        // Print top border
-        System.out.print("+");
-        for(int i = 0; i < Params.world_width; i++) {
-            System.out.print("-");
-        }
-        System.out.println("+");
-		/*
-		for each space, check if critter occupies it
-			if so: print their symbol
-			else: print an empty space
-		*/
-        /*
-        for(int y = 0; y < Params.world_height; y++) {
-            System.out.print('|');
-            for(int x = 0; x < Params.world_width; x++) {
-                if(board[x][y] == null) {
-                    System.out.print(' ');
-                }
-                else {
-                    System.out.print(board[x][y]);
-                }
-            }
-            System.out.println('|');
-        }
-        //print bottom border
-        System.out.print("+");
-        for(int i = 0; i < Params.world_width; i++) {
-            System.out.print("-");
-        }
-        System.out.println("+");
-        */
+        paint(grid);
     }
 
     private static void paintGridLines(GridPane grid) {
@@ -596,6 +563,20 @@ public abstract class Critter {
             critter.doTimeStep();
         }
 
+        // Remove dead Critters right after DoTimeStep
+        List<Critter> removed = new ArrayList<Critter>();
+        for(Critter critter : collection) {
+            if (critter.energy <= 0) {
+                board[critter.x_coord][critter.y_coord] = null;
+                removed.add(critter);
+                for (Critter crit : collection) {
+                    if (!crit.equals(critter) && crit.x_coord == critter.x_coord && crit.y_coord == critter.y_coord)
+                        board[crit.x_coord][crit.y_coord] = crit;
+                }
+            }
+        }
+        collection.removeAll(removed);
+
         // 3. Do the fights. doEncounters();
         doEncounters();
         // Clear the hasMoved flag each time step
@@ -612,7 +593,6 @@ public abstract class Critter {
                 board[critter.x_coord][critter.y_coord] = null;
                 for (Critter crit : collection) {
                     if (!crit.equals(critter) && crit.x_coord == critter.x_coord && crit.y_coord == critter.y_coord)
-//                        board[crit.x_coord][crit.y_coord] = crit.toString();
                         board[crit.x_coord][crit.y_coord] = crit;
                 }
             }
